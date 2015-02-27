@@ -3,6 +3,8 @@
 setwd("U:/Profile/Documents/R/WORK/Getting and Cleaning Data/Project")
 
 ##1 and #4 Merge all data with descriptive variable names.
+	library(dplyr)
+
 	# read train as well as test data from the data folder.       
 		train.data <- read.table("./UCI HAR Dataset/train/X_train.txt")
 		test.data <- read.table("./UCI HAR Dataset/test/X_test.txt")	
@@ -30,39 +32,25 @@ setwd("U:/Profile/Documents/R/WORK/Getting and Cleaning Data/Project")
  		all.data <- merge(train.data, test.data, all=TRUE)
 
 ##2 Extracts only the measurements on the mean and standard deviation for each measurements.
-	mean.data <- grep ("mean", features.data[,2], ignore.case=TRUE)
-	std.data <- grep ("std", features.data[,2], ignore.case=TRUE)
-	mean_std.data <- c(mean.data, std.data)
-      ncol <- length(mean_std.data)
-      all_mean_std.data <- all.data[mean_std.data]
-      all_mean_std_2.data <- cbind(all_mean_std.data, activity = all.data$activity, subject = all.data$subject)
+	meanindex <- grep ("mean", features.data[,2], ignore.case=TRUE)
+	stdindex <- grep ("std", features.data[,2], ignore.case=TRUE)
+	meanstdindex <- c(meanindex, stdindex)
+      ncol <- length(meanstdindex)
+      allmeanstd.data <- all.data[meanstdindex]
+      allmeanstd2.data <- cbind(allmeanstd.data, activity = all.data$activity, subject = all.data$subject)
 
 ##3 Uses descriptive activity names to name the activityes in the data set.
 	#imports activity labels
-		activity_labels.data <- read.table("./UCI HAR Dataset/activity_labels.txt")
+		activity_labels <- read.table("./UCI HAR Dataset/activity_labels.txt")
 	
       #replace index with activity labels
-		nloop=length(activity_labels.data$V1)
-		for (i in 1:nloop)
-		{	
-			match.data = NULL
-            	match.data = all_mean_std_2.data$activity == activity_labels.data$V1[i]
-			all_mean_std_2.data$activity[match.data] = as.character(activity_labels.data$V2[i])
-		}
+		allmeanstd2.data$activity <- activity_labels$V2[match(allmeanstd2.data$activity, activity_labels$V1)]
 
-##5 From the data set in step 4, create as second, independent tidy data set with the average of each variable for each activity and each subject.
+##5 From the data set in step 4, create as second, independent tidy data set with the average of each variable for each activity and each subject
+## merged train and test sets with "mean" and "std" variables with proper labels. In activity column, the activity numbers were converted to activity names.
+
+	allmeanstd2.data %>% group_by(activity, subject) %>% summarise_each(funs(mean)) -> allmeanstd3.data
 	
-	subject_mean_all.data = NULL
+	write.table(allmeanstd3.data, file = "tidydata.txt", row.name=FALSE)
 	
-	#loop through each activity and calculate the mean for each subject. The resulted data.frame is concatenated.
-		for (i in 1:nloop)
-		{	
-			subject_mean.data = NULL
-                  subject_mean.data = NULL
-			match.data2 = NULL
-            	match.data2 = all_mean_std_2.data$activity == activity_labels.data$V2[i]
-			subject_mean.data <- aggregate(all_mean_std_2.data[match.data2,1:ncol], by =list(all_mean_std_2.data$subject[match.data2]), mean)
-			names(subject_mean.data)[1] <- "subject"
-			subject_mean_2.data <- cbind("activity" = activity_labels.data$V2[i], subject_mean.data)
-                  subject_mean_all.data <- rbind(subject_mean_all.data, subject_mean_2.data)
-		}
+
