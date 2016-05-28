@@ -1,4 +1,4 @@
-This code book describes the output data for the course project for week 3 of Coursera class "Getting and Cleaning Data" by Jun Shinagawa 2/22/15
+This code book describes the output data for the course project for week 3 of Coursera class "Getting and Cleaning Data" by Jun Shinagawa 5/27/16
 
 
 Column variables are described following.
